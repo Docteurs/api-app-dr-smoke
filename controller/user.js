@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 exports.InscriptionUsers = (req, res, next) => {
+    console.log(req.body)
     const { email, password, nom, prenom, address } = req.body;
     const user = {
         uuid: mysqlConnection.escape(uuidv4()),
@@ -20,12 +21,14 @@ exports.InscriptionUsers = (req, res, next) => {
             $sql = `INSERT INTO utilisateur(uuid, email, password, nom, prenom, adresse) VALUES (${user.uuid}, ${user.email}, ${passHash}, ${user.nom}, ${user.prenom}, ${user.address})`;
             
             if (err) {
+                console.log(err)
                 return res.status(401).json({message: 'Une erreur est survenue'})
             }
             mysqlConnection.query($sql, (error, result, fields) => {
                 if (error) {
+                    console.log(`Une erreur est survenue: ${error}` )
                     return res.status(501).json({message: `Une erreur est survenue: ${error}`});
-                }
+                }       
                 return res.status(201).json({message: 'Utilisateur ajouter avec success!'})
             })
         })
@@ -33,6 +36,7 @@ exports.InscriptionUsers = (req, res, next) => {
 }
 
 exports.connexionUsers = (req, res, next) => {
+    console.log(req.body)
     const {email, password} = req.body;
     const users = {
         email: mysqlConnection.escape(email),
@@ -42,6 +46,9 @@ exports.connexionUsers = (req, res, next) => {
     mysqlConnection.query($sql, (error, result, fields) =>  {
         if (error) {
             return res.status(501).json({message: `Une erreur est survenue: ${error}`});
+        }
+        if (result == 0) {
+            return res.status(501).json({message: `Aucun utilisateur avec ${users.email}`});
         }
         const hash = result.map(obj => { return obj.password })[0];
         const uuidUser = result.map(obj => { return obj.uuid })[0];
