@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 
 exports.InscriptionAdmin = (req, res, next) => {
     const { email, password, nom, prenom, codePostal, adresse, ville } = req.body[0];
-
-
     const user = {
         uuid: mysqlConnection.escape(uuidv4()),
         email: mysqlConnection.escape(email),
@@ -17,8 +15,6 @@ exports.InscriptionAdmin = (req, res, next) => {
         address: mysqlConnection.escape(adresse),
         ville: mysqlConnection.escape(ville), 
     }
-    
-    
     bcrypt.genSalt(10, (err, salt) => {
         if (err) {
             return res.status(401).json({message: 'Une erreur est survenue'})
@@ -29,12 +25,11 @@ exports.InscriptionAdmin = (req, res, next) => {
             }
             const passHash = mysqlConnection.escape(hash)
             const $sql = `INSERT INTO admin(uuid, email, password, nom, prenom, address, ville) VALUES (${user.uuid}, ${user.email}, ${passHash}, ${user.nom}, ${user.prenom}, ${user.address}, ${user.ville})`;
-            
+
             mysqlConnection.query($sql, (error, result, fields) => {
                 if (error) {
                     return res.status(501).json({message: `Une erreur est survenue: ${error}`});
                 }
-
                 const $Sql = `INSERT INTO magasin(uuid, adresse, ville, code_postal, uuid_admin, imgUrl) VALUES(${mysqlConnection.escape(uuidv4())}, ${user.address}, ${user.ville}, ${user.code_postal}, ${user.uuid}, 'http://localhost:3000/image_produit/img_no_boutique/BIOT.webp')`;
                 
                 mysqlConnection.query($Sql, (error, result, fields) => {
@@ -50,7 +45,7 @@ exports.InscriptionAdmin = (req, res, next) => {
 
 
 exports.connexionAdmin = (req, res, next) => {
-    const {email, password} = req.body;
+    const {email, password} = req.body[0];
     const users = {
         email: mysqlConnection.escape(email),
         password: mysqlConnection.escape(password)
@@ -59,6 +54,9 @@ exports.connexionAdmin = (req, res, next) => {
     mysqlConnection.query($sql, (error, result, fields) =>  {
         if (error) {
             return res.status(501).json({message: `Une erreur est survenue: ${error}`});
+        }
+        if (result == 0) {
+            return res.status(501).json({message: "Aucun utilisateur trouvé"});
         }
         const hash = result.map(obj => { return obj.password })[0];
         const uuidUser = result.map(obj => { return obj.uuid })[0];
@@ -100,8 +98,7 @@ exports.userPromotion = (req, res, next) => {
                         }
                     }
                     // $sqlPromo = `UPDATE utilisateur SET promo = 'nouvelle valeur' WHERE condition`
-                    // console.log(troisiemeChiffre(prix))
-                    // console.log(resultUSers);
+  
                     // const promoUtilisateur = resultUSers.map(obj => { return obj.promo });
                     // const uuid_shop_promo = resultUsers.map(obj => { return obj.uuid_shop_promo }); 
                     const villeShop = result.map(obj => { return obj.ville })[0];
@@ -127,7 +124,7 @@ exports.userPromotion = (req, res, next) => {
                                 const nouveauPrix = parseFloat(req.body.prix);
                                 if (!isNaN(nouveauPrix)) {
                                     const resultTotal = ResultPrix + nouveauPrix;
-                                    console.log(resultTotal);
+                                    
 
                                     const $SqlUpdatePromo = `UPDATE promo_utilisateur SET prix = ? WHERE uuid_user = ? AND uuid_admin = ?`;
                                     const values = [resultTotal, decode.uuid, req.auth.userId];
@@ -157,78 +154,94 @@ exports.userPromotion = (req, res, next) => {
 }
 
 exports.gestionStockCreate = (req, res, next) => {
-    const uuidAdmin = mysqlConnection.escape(req.auth.userId)
-    $sql = `SELECT * FROM magasin WHERE uuid_admin = ${uuidAdmin}`;
-    mysqlConnection.query($sql, (err, result, fields) => {
-        if (err) {
-            return res.status(401).json({message: `Une erreur est survenue`})
-        }
-        if (result == 0) {
-            return res.status(401).json({message: `Utilisateur inconnue`});
-        }
-        const { categorie_produit, nom_produit, descriptif, quantite, un_g, trois_g, cinq_g, dix_g, vingt_g, prix_un_g, prix_trois_g, prix_cing_g, prix_dix_g, prix_vingt_g } = req.body;
-        const produit = {
-            uuid: mysqlConnection.escape(uuidv4()), //uuid
-            categorie_produit: mysqlConnection.escape(categorie_produit), //Varchar(255)
-            nom_produit: mysqlConnection.escape(nom_produit), //Varchar(255)    
-            descriptif: mysqlConnection.escape(descriptif), //Varchar(255)
-            quantite: mysqlConnection.escape(quantite), //int
-            un_g: un_g, //bool
-            trois_g: trois_g, //bool
-            cinq_g: cinq_g, //bool
-            dix_g: dix_g, //bool
-            vingt_g: vingt_g, //decimal
-            prix_un_g: prix_un_g, //decimal
-            prix_trois_g: prix_trois_g, //decimal
-            prix_cing_g: prix_cing_g, //decimal
-            prix_dix_g: prix_dix_g, //decimal
-            prix_vingt_g: prix_vingt_g, //decimal
-            ImageUrl: mysqlConnection.escape(`${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`)
-        };
+    console.log('ok')
+    console.log(req.file.string1)
+    console.log(req.body.string1)
+    // const uuidAdmin = mysqlConnection.escape(req.auth.userId)
+    // $sql = `SELECT * FROM magasin WHERE uuid_admin = ${uuidAdmin}`;
+    // mysqlConnection.query($sql, (err, result, fields) => {
+    //     if (err) {
+    //         return res.status(401).json({message: `Une erreur est survenue`})
+    //     }
+    //     if (result == 0) {
+    //         return res.status(401).json({message: `Utilisateur inconnue`});
+    //     }
+    //     const { categorie_produit, nom_produit, descriptif, quantite, un_g, trois_g, cinq_g, dix_g, vingt_g, prix_un_g, prix_trois_g, prix_cing_g, prix_dix_g, prix_vingt_g } = req.body;
+    //     const produit = {
+    //         uuid: mysqlConnection.escape(uuidv4()), //uuid
+    //         categorie_produit: mysqlConnection.escape(categorie_produit), //Varchar(255)
+    //         nom_produit: mysqlConnection.escape(nom_produit), //Varchar(255)    
+    //         descriptif: mysqlConnection.escape(descriptif), //Varchar(255)
+    //         quantite: mysqlConnection.escape(quantite), //int
+    //         un_g: un_g, //bool
+    //         trois_g: trois_g, //bool
+    //         cinq_g: cinq_g, //bool
+    //         dix_g: dix_g, //bool
+    //         vingt_g: vingt_g, //decimal
+    //         prix_un_g: prix_un_g, //decimal
+    //         prix_trois_g: prix_trois_g, //decimal
+    //         prix_cing_g: prix_cing_g, //decimal
+    //         prix_dix_g: prix_dix_g, //decimal
+    //         prix_vingt_g: prix_vingt_g, //decimal
+    //         ImageUrl: mysqlConnection.escape(`${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`)
+    //     };
 
-        if (produit.prix_un_g == null || produit.prix_un_g == undefined || produit.prix_un_g <= 0) {
-            return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 1g" });
-        }
+    //     if (produit.prix_un_g == null || produit.prix_un_g == undefined || produit.prix_un_g <= 0) {
+    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 1g" });
+    //     }
 
-        // Valider le prix pour 3g si la quantité de 3g est sélectionnée
-        if (produit.trois_g == 1  && (produit.prix_trois_g == null || produit.prix_trois_g == undefined || produit.prix_trois_g <= 0)) {
-            return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
-        }
+    //     // Valider le prix pour 3g si la quantité de 3g est sélectionnée
+    //     if (produit.trois_g == 1  && (produit.prix_trois_g == null || produit.prix_trois_g == undefined || produit.prix_trois_g <= 0)) {
+    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
+    //     }
 
-        // Valider le prix pour 5g si la quantité de 5g est sélectionnée
-        if (produit.cinq_g == 1  && (produit.prix_cing_g == null || produit.prix_cing_g == undefined || produit.prix_cing_g <= 0)) {
-            return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
-        }
+    //     // Valider le prix pour 5g si la quantité de 5g est sélectionnée
+    //     if (produit.cinq_g == 1  && (produit.prix_cing_g == null || produit.prix_cing_g == undefined || produit.prix_cing_g <= 0)) {
+    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
+    //     }
 
-        // // Valider le prix pour 10g si la quantité de 10g est sélectionnée
-        if (produit.dix_g == 1 && (produit.prix_dix_g == null || produit.prix_dix_g == undefined || produit.prix_dix_g <= 0)) {
-            return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 10g" });
-        }
+    //     // // Valider le prix pour 10g si la quantité de 10g est sélectionnée
+    //     if (produit.dix_g == 1 && (produit.prix_dix_g == null || produit.prix_dix_g == undefined || produit.prix_dix_g <= 0)) {
+    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 10g" });
+    //     }
 
-        // Valider le prix pour 20g si la quantité de 20g est sélectionnée
-        if (produit.vingt_g == 1 && (produit.prix_vingt_g == null || produit.prix_vingt_g == undefined || produit.prix_vingt_g <= 0)) {
-            return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 20g" });
-        }
+    //     // Valider le prix pour 20g si la quantité de 20g est sélectionnée
+    //     if (produit.vingt_g == 1 && (produit.prix_vingt_g == null || produit.prix_vingt_g == undefined || produit.prix_vingt_g <= 0)) {
+    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 20g" });
+    //     }
 
-        $Sql = `INSERT INTO produit(uuid, categorie_produit, nom_produit, descriptif, quantite, 1g, 3g, 5g, 10g, 20g, 1g_prix, 3g_prix, 5g_prix, 10g_prix, 20g_prix, img_produit, uuid_magasin)
-        VALUES(${produit.uuid}, ${produit.categorie_produit}, ${produit.nom_produit}, ${produit.descriptif}, ${produit.quantite}, ${produit.un_g}, 
-            ${produit.trois_g}, ${produit.cinq_g}, ${produit.dix_g}, ${produit.vingt_g}, ${produit.prix_un_g}, ${produit.prix_trois_g}, ${produit.prix_cing_g}, ${produit.prix_dix_g}, ${produit.prix_vingt_g}, ${produit.ImageUrl}, ${uuidAdmin});`;
+    //     $Sql = `INSERT INTO produit(uuid, categorie_produit, nom_produit, descriptif, quantite, 1g, 3g, 5g, 10g, 20g, 1g_prix, 3g_prix, 5g_prix, 10g_prix, 20g_prix, img_produit, uuid_magasin)
+    //     VALUES(${produit.uuid}, ${produit.categorie_produit}, ${produit.nom_produit}, ${produit.descriptif}, ${produit.quantite}, ${produit.un_g}, 
+    //         ${produit.trois_g}, ${produit.cinq_g}, ${produit.dix_g}, ${produit.vingt_g}, ${produit.prix_un_g}, ${produit.prix_trois_g}, ${produit.prix_cing_g}, ${produit.prix_dix_g}, ${produit.prix_vingt_g}, ${produit.ImageUrl}, ${uuidAdmin});`;
 
-        mysqlConnection.query($Sql, (err, result, fields) => {
-            if (err) {
-                return res.status(401).json({message: `Une erreur est survenue: ${err}`})
-            }
-            return res.status(201).json({message: 'Produit ajouter'})
-        })
-    })
+    //     mysqlConnection.query($Sql, (err, result, fields) => {
+    //         if (err) {
+    //             return res.status(401).json({message: `Une erreur est survenue: ${err}`})
+    //         }
+    //         return res.status(201).json({message: 'Produit ajouter'})
+    //     })
+    // })
 }
 
-exports.getAllVille = (req, res, next) => {
-    $sql = "SELECT * FROM ville";
+exports.getInfoMagasin = (req, res, next) => { 
+    const uuid_admin = mysqlConnection.escape(req.auth.userId);
+    $sql = `SELECT a.email, a.nom, a.prenom, m.adresse, m.code_postal, m.imgUrl, m.ville FROM admin a, magasin m WHERE a.uuid = ${uuid_admin} AND m.uuid_admin = ${uuid_admin};`;
     mysqlConnection.query($sql, (err, result, fields) => {
         if (err) {
-            return res.status(401).json({message: "Une erreur est survenue"})
+            return res.status(501).json({ message: `Une erreur est survenue: ${err}` });
         }
-        return res.status(201).json(result);
+        return res.status(201).json(result); // Envoie la réponse au format JSON valide
+    });
+};
+
+exports.getAllProduit =(req, res, next) => {
+    const uuid_admin = mysqlConnection.escape(req.auth.userId);
+    $Sql = `SELECT * FROM produit WHERE uuid_magasin = ${uuid_admin};`;
+    mysqlConnection.query($Sql, (err, result, fields) => {
+        if (err) {
+            return res.status(401).json({message: `Une erreur est survenue: ${err}`});
+        }
+        console.log($Sql)
+        return res.status(201).json(result)
     })
 }

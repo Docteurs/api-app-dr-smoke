@@ -37,7 +37,7 @@ exports.InscriptionUsers = (req, res, next) => {
 
 exports.connexionUsers = (req, res, next) => {
     console.log(req.body)
-    const {email, password} = req.body;
+    const {email, password} = req.body[0];
     const users = {
         email: mysqlConnection.escape(email),
         password: mysqlConnection.escape(password)

@@ -14,12 +14,13 @@ const storage = multer.diskStorage({
             fs.mkdirSync(`image_produit/${req.auth.userId}`);
             //console.log(req.auth.userId);
         }
+        
         callback(null, `image_produit/${req.auth.userId}`)
     },
     filename: (req, file, callback) => {
         const name = file.originalname.split(" ").join("_");
         const extension = MIME_TYPES[file.mimetype];
-        callback(null, name + Date.now() + "." + extension);
+        callback(null, name + Date.now() + "." + file.originalname);
     }
 });
 
