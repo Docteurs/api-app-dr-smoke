@@ -155,72 +155,73 @@ exports.userPromotion = (req, res, next) => {
 
 exports.gestionStockCreate = (req, res, next) => {
     console.log('ok')
-    console.log(req.file.string1)
-    console.log(req.body.string1)
-    // const uuidAdmin = mysqlConnection.escape(req.auth.userId)
-    // $sql = `SELECT * FROM magasin WHERE uuid_admin = ${uuidAdmin}`;
-    // mysqlConnection.query($sql, (err, result, fields) => {
-    //     if (err) {
-    //         return res.status(401).json({message: `Une erreur est survenue`})
-    //     }
-    //     if (result == 0) {
-    //         return res.status(401).json({message: `Utilisateur inconnue`});
-    //     }
-    //     const { categorie_produit, nom_produit, descriptif, quantite, un_g, trois_g, cinq_g, dix_g, vingt_g, prix_un_g, prix_trois_g, prix_cing_g, prix_dix_g, prix_vingt_g } = req.body;
-    //     const produit = {
-    //         uuid: mysqlConnection.escape(uuidv4()), //uuid
-    //         categorie_produit: mysqlConnection.escape(categorie_produit), //Varchar(255)
-    //         nom_produit: mysqlConnection.escape(nom_produit), //Varchar(255)    
-    //         descriptif: mysqlConnection.escape(descriptif), //Varchar(255)
-    //         quantite: mysqlConnection.escape(quantite), //int
-    //         un_g: un_g, //bool
-    //         trois_g: trois_g, //bool
-    //         cinq_g: cinq_g, //bool
-    //         dix_g: dix_g, //bool
-    //         vingt_g: vingt_g, //decimal
-    //         prix_un_g: prix_un_g, //decimal
-    //         prix_trois_g: prix_trois_g, //decimal
-    //         prix_cing_g: prix_cing_g, //decimal
-    //         prix_dix_g: prix_dix_g, //decimal
-    //         prix_vingt_g: prix_vingt_g, //decimal
-    //         ImageUrl: mysqlConnection.escape(`${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`)
-    //     };
+    // console.log(req.file)
+    console.log(req.body)
+    const { nameProduct, descriptifProduct, categorieProduct, resultQuantiteProductGramme, prix1gProduit, prix3gProduit, prix5gProduit, prix10gProduit, prix20gProduit } = req.body;
+    const produit = {
+        uuid: mysqlConnection.escape(uuidv4()),
+        nameProduct : mysqlConnection.escape(nameProduct),
+        descriptifProduct: mysqlConnection.escape(descriptifProduct),
+        categorieProduct: mysqlConnection.escape(categorieProduct),
+        resultQuantiteProductGramme: mysqlConnection.escape(resultQuantiteProductGramme),
+        prix1gProduit: mysqlConnection.escape(prix1gProduit),
+        prix3gProduit: mysqlConnection.escape(prix3gProduit),
+        prix5gProduit: mysqlConnection.escape(prix5gProduit),
+        prix10gProduit: mysqlConnection.escape(prix10gProduit),
+        prix20gProduit: mysqlConnection.escape(prix20gProduit),
+        ImageUrl: mysqlConnection.escape(`${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`)
+    }
 
-    //     if (produit.prix_un_g == null || produit.prix_un_g == undefined || produit.prix_un_g <= 0) {
-    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 1g" });
-    //     }
+    const uuidAdmin = mysqlConnection.escape(req.auth.userId)
+    $Sql = `SELECT * FROM magasin WHERE uuid_admin = ${uuidAdmin}`;
 
-    //     // Valider le prix pour 3g si la quantité de 3g est sélectionnée
-    //     if (produit.trois_g == 1  && (produit.prix_trois_g == null || produit.prix_trois_g == undefined || produit.prix_trois_g <= 0)) {
-    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
-    //     }
+    mysqlConnection.query($Sql, (err, result, fields) => {
+            if (err) {
+                return res.status(501).json({ message: "Une erreur est survenue" })
+            }
+            if (result == 0) {
+                return res.status(401).json({message: `Utilisateur inconnue`});
+            }
+            else {
+            if (produit.prix1gProduit == null || produit.prix1gProduit == undefined || produit.prix1gProduit <= 0) {
+                return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 1g" });
+            }
 
-    //     // Valider le prix pour 5g si la quantité de 5g est sélectionnée
-    //     if (produit.cinq_g == 1  && (produit.prix_cing_g == null || produit.prix_cing_g == undefined || produit.prix_cing_g <= 0)) {
-    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
-    //     }
+            // Valider le prix pour 3g si la quantité de 3g est sélectionnée
+            if (produit.prix3gProduit == 1  && (produit.prix_prix3gProduit == null || produit.prix_prix3gProduit == undefined || produit.prix_prix3gProduit <= 0)) {
+                return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
+            }
 
-    //     // // Valider le prix pour 10g si la quantité de 10g est sélectionnée
-    //     if (produit.dix_g == 1 && (produit.prix_dix_g == null || produit.prix_dix_g == undefined || produit.prix_dix_g <= 0)) {
-    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 10g" });
-    //     }
+            // Valider le prix pour 5g si la quantité de 5g est sélectionnée
+            if (produit.prix5gProduit == 1  && (produit.prix5gProduit == null || produit.prix5gProduit == undefined || produit.prix5gProduit <= 0)) {
+                return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 3g" });
+            }
 
-    //     // Valider le prix pour 20g si la quantité de 20g est sélectionnée
-    //     if (produit.vingt_g == 1 && (produit.prix_vingt_g == null || produit.prix_vingt_g == undefined || produit.prix_vingt_g <= 0)) {
-    //         return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 20g" });
-    //     }
+            // // Valider le prix pour 10g si la quantité de 10g est sélectionnée
+            if (produit.prix10gProduit == 1 && (produit.prix10gProduit == null || produit.prix10gProduit == undefined || produit.prix10gProduit <= 0)) {
+                return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 10g" });
+            }
 
-    //     $Sql = `INSERT INTO produit(uuid, categorie_produit, nom_produit, descriptif, quantite, 1g, 3g, 5g, 10g, 20g, 1g_prix, 3g_prix, 5g_prix, 10g_prix, 20g_prix, img_produit, uuid_magasin)
-    //     VALUES(${produit.uuid}, ${produit.categorie_produit}, ${produit.nom_produit}, ${produit.descriptif}, ${produit.quantite}, ${produit.un_g}, 
-    //         ${produit.trois_g}, ${produit.cinq_g}, ${produit.dix_g}, ${produit.vingt_g}, ${produit.prix_un_g}, ${produit.prix_trois_g}, ${produit.prix_cing_g}, ${produit.prix_dix_g}, ${produit.prix_vingt_g}, ${produit.ImageUrl}, ${uuidAdmin});`;
+            // Valider le prix pour 20g si la quantité de 20g est sélectionnée
+            if (produit.prix20gProduit == 1 && (produit.prix20gProduit == null || produit.prix20gProduit == undefined || produit.prix20gProduit <= 0)) {
+                return res.status(401).json({ message: "Veuillez renseigner un prix valide pour 20g" });
+            }
+                $SqlInsertProduct = `INSERT INTO produit(uuid, categorie_produit, nom_produit, descriptif, quantite, 1g, 3g, 5g, 10g, 20g, 1g_prix, 3g_prix, 5g_prix, 10g_prix, 20g_prix, img_produit, uuid_magasin)
+                VALUES(${produit.uuid}, ${produit.categorieProduct}, ${produit.nameProduct}, ${produit.descriptifProduct}, ${produit.resultQuantiteProductGramme}, ${true}, 
+                    ${true}, ${true}, ${true}, ${true}, ${produit.prix1gProduit}, ${produit.prix3gProduit}, ${produit.prix5gProduit}, ${produit.prix10gProduit}, ${produit.prix20gProduit}, ${produit.ImageUrl}, ${uuidAdmin});`;
+                mysqlConnection.query($SqlInsertProduct, (errorInsertProduct, resultInsertProduct, fieldsInsertProduct) => {
+                if (errorInsertProduct) {
+                    console.log(errorInsertProduct)
+                    return res.status(501).json({message: "Une erreur est survenue veuillez reeseayez plus tard"})
+                }
+                else {
+                    console.log("Votre produit a bien été ajouter")
+                    return res.status(201).json({ message: "Votre produit a bien été ajouter" })
+                }
+            })
+        }
+    })
 
-    //     mysqlConnection.query($Sql, (err, result, fields) => {
-    //         if (err) {
-    //             return res.status(401).json({message: `Une erreur est survenue: ${err}`})
-    //         }
-    //         return res.status(201).json({message: 'Produit ajouter'})
-    //     })
-    // })
 }
 
 exports.getInfoMagasin = (req, res, next) => { 
@@ -230,6 +231,7 @@ exports.getInfoMagasin = (req, res, next) => {
         if (err) {
             return res.status(501).json({ message: `Une erreur est survenue: ${err}` });
         }
+        
         return res.status(201).json(result); // Envoie la réponse au format JSON valide
     });
 };
@@ -241,7 +243,31 @@ exports.getAllProduit =(req, res, next) => {
         if (err) {
             return res.status(401).json({message: `Une erreur est survenue: ${err}`});
         }
-        console.log($Sql)
+        console.log(result)
         return res.status(201).json(result)
     })
+}
+
+exports.getOneProduit = (req, res, next) => {
+    console.log(req.auth.userId)
+    console.log(req.params)
+    uuidAdmin = mysqlConnection.escape(req.auth.userId);
+    uuidProduit = mysqlConnection.escape(req.params.uuid);
+    $Sql = `SELECT * FROM produit WHERE uuid = ${uuidProduit} AND uuid_magasin = ${uuidAdmin}`;
+    mysqlConnection.query($Sql, (err, result, fields) => {
+        if (err) {
+            return res.status(501).json({ message: "Une erreur est survene" })
+        }
+        if (result == 0) {
+            return res.status(201).json({ message: 'Utilisateur inconnue' })
+        }
+        else {
+            return res.status(201).json(result)
+        }
+    })
+}
+
+exports.updateOneProduit = (req, res, next) => {
+    console.log(req.auth.userId)
+    console.log(req.params.uuid)
 }
