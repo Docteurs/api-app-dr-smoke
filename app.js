@@ -13,7 +13,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use("/image_produit", express.static(path.join(__dirname, "image_produit")));
-app.use('', routeUser);
+app.use('/DrSmokeApi', routeUser);
 app.use('/admin', routeAdmin);
 
 module.exports = app;

@@ -1,6 +1,6 @@
 const mysqlConnection = require('../middelware/mysqlConnection');
 const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
@@ -31,7 +31,7 @@ exports.InscriptionAdmin = (req, res, next) => {
                 if (error) {
                     return res.status(501).json({ message: `Une erreur est survenue: ${error}` });
                 }
-                const $Sql = `INSERT INTO magasin(uuid, adresse, ville, code_postal, uuid_admin, imgUrl) VALUES(${mysqlConnection.escape(uuidv4())}, ${user.address}, ${user.ville}, ${user.code_postal}, ${user.uuid}, 'http://localhost:3000/image_produit/img_no_boutique/BIOT.webp')`;
+                const $Sql = `INSERT INTO magasin(uuid, adresse, ville, code_postal, uuid_admin, imgUrl) VALUES(${mysqlConnection.escape(uuidv4())}, ${user.address}, ${user.ville}, ${user.code_postal}, ${user.uuid}, 'https://get-evolutif.xyz/DrSmokeApi/image_produit/img_no_boutique/BIOT.webp')`;
 
                 mysqlConnection.query($Sql, (error, result, fields) => {
                     if (error) {
@@ -167,7 +167,7 @@ exports.gestionStockCreate = (req, res, next) => {
         prix5gProduit: mysqlConnection.escape(prix5gProduit),
         prix10gProduit: mysqlConnection.escape(prix10gProduit),
         prix20gProduit: mysqlConnection.escape(prix20gProduit),
-        ImageUrl: mysqlConnection.escape(`${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`)
+        ImageUrl: mysqlConnection.escape(`https://${req.get('host')}/DrSmokeApi/image_produit/${req.auth.userId}/${req.file.filename}`)
     }
 
     const uuidAdmin = mysqlConnection.escape(req.auth.userId)
@@ -222,7 +222,7 @@ exports.gestionStockCreate = (req, res, next) => {
 
 exports.getInfoMagasin = (req, res, next) => {
     const uuid_admin = mysqlConnection.escape(req.auth.userId);
-    $sql = `SELECT a.email, a.nom, a.prenom, m.adresse, m.code_postal, m.imgUrl, m.ville FROM admin a, magasin m WHERE a.uuid = ${uuid_admin} AND m.uuid_admin = ${uuid_admin};`;
+    $sql = `SELECT a.email, a.nom, a.prenom, m.adresse, m.code_postal, m.imgUrl, m.ville, m.horaireLundi, m.horaireMardi, m.horaireMercredi, m.horaireJeudi, m.horaireVendredi, m.horaireSamedi, m.horaireDimanche FROM admin a, magasin m WHERE a.uuid = ${uuid_admin} AND m.uuid_admin = ${uuid_admin};`;
     mysqlConnection.query($sql, (err, result, fields) => {
         if (err) {
             return res.status(501).json({ message: `Une erreur est survenue: ${err}` });
@@ -261,7 +261,7 @@ exports.getOneProduit = (req, res, next) => {
 }
 
 exports.updateOneProduit = (req, res, next) => {
-
+    
     if (req.file == null || req.file == "" || req.file == undefined) {
 
         const { categorie_produit, nom_produit, descriptif, quantite, unGprix, troisGprix, cingGprix, dixGprix, vingtGprix, isVisible } = req.body[0];
@@ -277,6 +277,7 @@ exports.updateOneProduit = (req, res, next) => {
             vingtGprix: mysqlConnection.escape(vingtGprix),
             isVisible: mysqlConnection.escape(isVisible)
         };
+        
         const uuid_magasin = mysqlConnection.escape(req.auth.userId);
         $Sql = `SELECT * FROM produit WHERE uuid = ${mysqlConnection.escape(req.params.uuid)} AND uuid_magasin = ${uuid_magasin}`;
         mysqlConnection.query($Sql, (err, result, fields) => {
@@ -358,7 +359,7 @@ exports.updateOneProduit = (req, res, next) => {
             cingGprix: req.body.prix5gProduit,
             dixGprix: req.body.prix10gProduit,
             vingtGprix: req.body.prix20gProduit,
-            ImageUrl: `${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`
+            ImageUrl: `https://${req.get('host')}/DrSmokeApi/image_produit/${req.auth.userId}/${req.file.filename}`
         };
         const uuid_magasin = mysqlConnection.escape(req.auth.userId);
         $Sql = `SELECT * FROM produit WHERE uuid = ${mysqlConnection.escape(req.params.uuid)} AND uuid_magasin = ${uuid_magasin}`;
@@ -383,17 +384,15 @@ exports.updateOneProduit = (req, res, next) => {
             const resultPrix10g = result.map(obj => { return obj.dixg_prix });
             const resultPrix20g = result.map(obj => { return obj.vingtg_prix });
             const resultImageProduit = result.map(obj => obj.img_produit);
-
-            // Vérifier si resultImageProduit[0] est défini avant de l'utiliser
             
             const url = resultImageProduit[0].split(req.auth.userId)[1];
-            fs.unlink(`image_produit/${req.auth.userId}/${url}`, (err) => {
-                if (err) {
-                    console.log("Aucune image")
-                } else {
-                    console.log("Deleted");
-                }
-            });
+            // fs.unlink(`image_produit/${req.auth.userId}/${url}`, (err) => {
+            //     if (err) {
+            //         console.log("Aucune image")
+            //     } else {
+            //         console.log("Deleted");
+            //     }
+            // });
             
             if (req.body.categorieProduct == "" || req.body.categorieProduct == null || req.body.categorieProduct == undefined || req.body.categorieProduct == "''" || req.body.categorieProduct == 'NULL') {
                 produit.categorie_produit = resultCategorie_produit;
@@ -446,11 +445,11 @@ exports.updateOneProduit = (req, res, next) => {
             });
 
         })
-        // Logique pour le traitement sans image
     }
 }
 
 exports.updateBoutique = (req, res, next) => {
+    
     const { Email, Addresse, Nom, Prenom, LundiOuvert, MardiOuvert, MercrediOuvert, JeudiOuvert, VendrediOuvert, SamediOuvert, DimancheOuvert, HoraireLundi, HoraireMardi, HoraireMercredi, HoraireJeudi, HoraireVendredi, HoraireSamedi, HoraireDimanche } = req.body;
     const magasin = {
         Email: mysqlConnection.escape(Email),
@@ -471,8 +470,9 @@ exports.updateBoutique = (req, res, next) => {
         HoraireVendredi: mysqlConnection.escape(HoraireVendredi),
         HoraireSamedi: mysqlConnection.escape(HoraireSamedi),
         HoraireDimanche: mysqlConnection.escape(HoraireDimanche),
-        ImageUrl: `${req.protocol}://${req.get('host')}/image_produit/${req.auth.userId}/${req.file.filename}`
+        ImageUrl: `https://${req.get('host')}/DrSmokeApi/image_produit/${req.auth.userId}/${req.file.filename}`
     }
+    console.log(magasin.nom)
     const uuidMagasin = mysqlConnection.escape(req.auth.userId);
     $Sql = `SELECT * FROM magasin WHERE uuid_admin = ${uuidMagasin};`;
     mysqlConnection.query($Sql, (err, result, fields) => {
@@ -485,13 +485,13 @@ exports.updateBoutique = (req, res, next) => {
         else {
             const oldImg = result.map(obj => { return obj.imgUrl })[0];
             // console.log(oldImg.split('http://localhost:3000/')[1]);
-            fs.unlink(oldImg.split('http://localhost:3000/')[1], (err) => {
-                if (err) {
-                    console.log("Aucune image")
-                } else {
-                    console.log("Deleted");
-                }
-            });
+            // fs.unlink(oldImg.split('https://get-evolutif.xyz/DrSmokeApi/image_produit')[1], (err) => {
+            //     if (err) {
+            //         console.log("Aucune image")
+            //     } else {
+            //         console.log("Deleted");
+            //     }
+            // });
             if (req.body.LundiOuvert == 'True') { magasin.LundiOuvert = true; } else { magasin.LundiOuvert = false; }
             if (req.body.MardiOuvert == 'True') { magasin.MardiOuvert = true; } else { magasin.MardiOuvert = false; }
             if (req.body.MercrediOuvert == 'True') { magasin.MercrediOuvert = true; } else { magasin.MercrediOuvert = false; }
@@ -499,17 +499,32 @@ exports.updateBoutique = (req, res, next) => {
             if (req.body.VendrediOuvert == 'True') { magasin.VendrediOuvert = true; } else { magasin.VendrediOuvert = false; }
             if (req.body.SamediOuvert == 'True') { magasin.SamediOuvert = true; } else { magasin.SamediOuvert = false; }
             if (req.body.DimancheOuvert == 'True') { magasin.DimancheOuvert = true; } else { magasin.DimancheOuvert = false; }
-
-            $SqlUpdate = `UPDATE magasin SET adresse = ${magasin.Addresse}, imgUrl = ${mysqlConnection.escape(magasin.ImageUrl)}, boolLundiOuvert = ${magasin.LundiOuvert}, boolMardiOuvert = ${magasin.MardiOuvert},
-            boolMercrediOuvert =${magasin.MercrediOuvert}, boolJeudiOuvert = ${magasin.JeudiOuvert}, boolVendrediOuvert = ${magasin.VendrediOuvert}, boolSamediOuvert = ${magasin.SamediOuvert},
-            boolDimancheOuvert = ${magasin.DimancheOuvert}, horaireLundi = ${magasin.HoraireLundi}, horaireMardi = ${magasin.HoraireMardi}, horaireMercredi = ${magasin.HoraireMercredi},
+            
+           
+            $SqlUpdate = `UPDATE magasin SET adresse = ${magasin.Addresse}, imgUrl = ${mysqlConnection.escape(magasin.ImageUrl)}, boolLundiOuvert = TRUE, boolMardiOuvert = TRUE,
+            boolMercrediOuvert = TRUE, boolJeudiOuvert = TRUE, boolVendrediOuvert = TRUE, boolSamediOuvert = TRUE,
+            boolDimancheOuvert = TRUE, horaireLundi = ${magasin.HoraireLundi}, horaireMardi = ${magasin.HoraireMardi}, horaireMercredi = ${magasin.HoraireMercredi},
             horaireJeudi = ${magasin.HoraireJeudi}, horaireVendredi = ${magasin.HoraireVendredi}, horaireSamedi = ${magasin.HoraireSamedi}, horaireDimanche = ${magasin.HoraireDimanche} WHERE uuid_admin = ${uuidMagasin};`;
+            //return res.status(201).json(magasin);
             mysqlConnection.query($SqlUpdate, (errUpdate, resultUpdate, fieldsUpdate) => {
                 if (errUpdate) {
-                    return res.status(501).json({ message: "Une erreur est survenue" + err });
+                    return res.status(501).json({ message: "Une erreur est survenue" + errUpdate });
                 }
-                return res.status(201).json({message: "Vos information on bien été modifié!"})
+                return res.status(201).json({message: "Vos information on bien été modifié!" + magasin.nom})
             })
         }
+    })
+}
+
+exports.commandeAdmin = (req, res, next) => {
+    const uuidMagasin = mysqlConnection.escape(req.auth.userId)
+    $Sql = `SELECT ca.uuidCommande, ca.uuidClient, ca.uuidMagasin, ca.uuidProduit, ca.quantite, ca.prixProduit, ca.prixTotalDesProduit, u.email AS emailClient, u.nom nomClient, u.prenom prenomClient, u.adresse addresseClient, p.categorie_produit, p.nom_produit, p.descriptif, p.img_produit  FROM commandeadmin ca, utilisateur u, produit p WHERE ca.uuidMagasin = ${uuidMagasin} AND ca.uuidClient = u.uuid AND p.uuid = ca.uuidProduit;`;
+    console.log($Sql)
+    mysqlConnection.query($Sql, (err, result, fields) => {
+        if (err) {
+            return res.status(501).json({ message: "Une erreur est survenue" + errUpdate });
+        }
+        console.log(result)
+        return res.status(201).json(result)
     })
 }
